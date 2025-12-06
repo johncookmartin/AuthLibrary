@@ -51,7 +51,7 @@ public class GoogleService : IGoogleService
         return schemes.Any(s => s.Name == "Google" && s.DisplayName == displayName);
     }
 
-    public string GenerateInitialsFromName(string familyName, string givenName)
+    public string GenerateInitialsFromName(string? familyName, string? givenName)
     {
         string initials = string.Empty;
         if (!string.IsNullOrWhiteSpace(givenName))

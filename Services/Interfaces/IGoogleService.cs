@@ -13,13 +13,12 @@ public sealed class GoogleLoginResult
 {
     public bool Succeeded { get; init; }
     public IEnumerable<string>? Errors { get; init; } = Array.Empty<string>();
-    public string? Email { get; init; }
+    public string Email { get; init; } = string.Empty;
     public string? Name { get; init; }
     public string? FamilyName { get; init; }
     public string? GivenName { get; init; }
     public string? PictureUrl { get; init; }
-    public string? Subject { get; init; }
-    public bool IsPayloadNull() => Email is null && Name is null && FamilyName is null && GivenName is null && PictureUrl is null && Subject is null;
+    public string Subject { get; init; } = string.Empty;
     public string DisplayName { get; init; } = string.Empty;
     public static GoogleLoginResult Success(GoogleJsonWebSignature.Payload payload, string displayName) =>
         new()
