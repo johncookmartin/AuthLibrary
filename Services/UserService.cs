@@ -95,16 +95,11 @@ public class UserService : IUserService
         }
         else
         {
-            var addProviderResult = await AddProvider(new AddProviderRequestDto
+            var logins = await _userManager.GetLoginsAsync(user);
+            bool providerExists = logins.Any(l => l.LoginProvider == request.Provider && l.ProviderKey == request.ProviderKey);
+            if (!providerExists)
             {
-                User = user,
-                Provider = request.Provider!,
-                ProviderKey = request.ProviderKey!,
-                Name = request.Name
-            });
-            if (!addProviderResult.Succeeded)
-            {
-                return LoginResult.Failure(addProviderResult.Errors);
+                return LoginResult.Failure(new[] { "Provider login not found for this user." });
             }
         }
 
