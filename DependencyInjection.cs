@@ -31,7 +31,8 @@ public static class DependencyInjection
             options.UseSqlServer(connectionString);
         });
 
-        services.AddIdentity<AuthUser, IdentityRole<Guid>>()
+        services.AddIdentityCore<AuthUser>()
+            .AddRoles<IdentityRole<Guid>>()
             .AddEntityFrameworkStores<AuthDbContext>();
 
         // services
