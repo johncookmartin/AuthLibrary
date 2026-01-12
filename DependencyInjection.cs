@@ -15,7 +15,7 @@ namespace AuthLibrary;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddAuthServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddAuthServices<TMigrationAssemblyMarker>(this IServiceCollection services, IConfiguration configuration)
     {
         AuthSettings? authSettings = configuration.GetSection("Auth").Get<AuthSettings>()
             ?? throw new InvalidOperationException("Auth settings are missing");
@@ -28,12 +28,16 @@ public static class DependencyInjection
         {
             string? connectionString = authSettings.ConnectionString
                 ?? throw new InvalidOperationException("Auth connection string is not configured.");
-            options.UseSqlServer(connectionString);
+            options.UseSqlServer(connectionString, sql =>
+            {
+                sql.MigrationsAssembly(typeof(TMigrationAssemblyMarker).Assembly.FullName);
+            });
         });
 
         services.AddIdentityCore<AuthUser>()
             .AddRoles<IdentityRole<Guid>>()
-            .AddEntityFrameworkStores<AuthDbContext>();
+            .AddEntityFrameworkStores<AuthDbContext>()
+            .AddDefaultTokenProviders();
 
         // services
         services.AddScoped<ITokenService, TokenService>();
