@@ -1,8 +1,8 @@
-﻿using AuthLibrary.Data.Entities;
+using AuthLibrary.Data.Entities;
 
-namespace AuthLibrary.DTOs;
+namespace AuthLibrary.DTOs.Provider;
 
-public class AddProviderRequestDto
+public record AddProviderRequest
 {
     public AuthUser User { get; init; } = null!;
     public string Provider { get; init; } = string.Empty;

@@ -1,6 +1,6 @@
 ﻿using AuthLibrary.Data;
 using AuthLibrary.Data.Entities;
-using AuthLibrary.DTOs;
+using AuthLibrary.DTOs.RefreshToken;
 using AuthLibrary.Services.Interfaces;
 using AuthLibrary.Settings;
 using AuthLibrary.Settings.Constants;
@@ -88,26 +88,26 @@ public class TokenService : ITokenService
         return refreshToken.Token;
     }
 
-    public async Task<RefreshTokenValidationResultDto> ValidateRefreshTokenAsync(string refreshToken)
+    public async Task<RefreshTokenValidationResult> ValidateRefreshTokenAsync(string refreshToken)
     {
-        RefreshToken? existingToken = await _context.RefreshTokens
+        Data.Entities.RefreshToken? existingToken = await _context.RefreshTokens
                         .Include(r => r.User)
                         .FirstOrDefaultAsync(r => r.Token == refreshToken && r.DeletedAtUtc == null);
         if (existingToken == null || existingToken.ExpiresOnUtc < DateTime.UtcNow || existingToken.User == null)
         {
-            return RefreshTokenValidationResultDto.Failure("Invalid or expired refresh token.");
+            return RefreshTokenValidationResult.Failure("Invalid or expired refresh token.");
         }
         var roles = await _userManager.GetRolesAsync(existingToken.User);
 
-        return RefreshTokenValidationResultDto.Success(existingToken, existingToken.User, roles);
+        return RefreshTokenValidationResult.Success(existingToken, existingToken.User, roles);
     }
 
-    public async Task<RefreshTokenResultDto> RefreshTokenAsync(string refreshToken)
+    public async Task<RefreshTokenResult> RefreshTokenAsync(string refreshToken)
     {
-        RefreshTokenValidationResultDto validationResult = await ValidateRefreshTokenAsync(refreshToken);
+        RefreshTokenValidationResult validationResult = await ValidateRefreshTokenAsync(refreshToken);
         if (!validationResult.Succeeded)
         {
-            return RefreshTokenResultDto.Failure(validationResult.ErrorMessage!);
+            return RefreshTokenResult.Failure(validationResult.ErrorMessage!);
         }
 
         string accessToken = await GenerateTokenAsync(validationResult.User, validationResult.Roles);
@@ -115,7 +115,7 @@ public class TokenService : ITokenService
 
         await _context.SaveChangesAsync();
 
-        return RefreshTokenResultDto.Success(accessToken, newRefreshToken);
+        return RefreshTokenResult.Success(accessToken, newRefreshToken);
     }
 
     public async Task<bool> RevokeRefreshTokensAsync(Guid userId)

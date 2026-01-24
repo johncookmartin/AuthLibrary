@@ -1,6 +1,6 @@
-namespace AuthLibrary.DTOs;
+namespace AuthLibrary.DTOs.Google;
 
-public sealed class GoogleLoginResultDto
+public sealed record GoogleLoginResult
 {
     public bool Succeeded { get; init; }
     public IEnumerable<string>? Errors { get; init; } = Array.Empty<string>();
@@ -11,7 +11,7 @@ public sealed class GoogleLoginResultDto
     public string? PictureUrl { get; init; }
     public string Subject { get; init; } = string.Empty;
     public string DisplayName { get; init; } = string.Empty;
-    public static GoogleLoginResultDto Success(Google.Apis.Auth.GoogleJsonWebSignature.Payload payload, string displayName) =>
+    public static GoogleLoginResult Success(global::Google.Apis.Auth.GoogleJsonWebSignature.Payload payload, string displayName) =>
         new()
         {
             Succeeded = true,
@@ -23,12 +23,12 @@ public sealed class GoogleLoginResultDto
             PictureUrl = payload.Picture,
             Subject = payload.Subject
         };
-    public static GoogleLoginResultDto Failure(IEnumerable<string> errors) =>
+    public static GoogleLoginResult Failure(IEnumerable<string> errors) =>
         new()
         {
             Succeeded = false,
             Errors = errors
         };
-    public static GoogleLoginResultDto Failure(string error) =>
+    public static GoogleLoginResult Failure(string error) =>
         new() { Succeeded = false, Errors = new[] { error } };
 }

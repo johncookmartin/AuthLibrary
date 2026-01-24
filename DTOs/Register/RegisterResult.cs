@@ -1,16 +1,16 @@
 using AuthLibrary.Data.Entities;
 
-namespace AuthLibrary.DTOs;
+namespace AuthLibrary.DTOs.Register;
 
-public sealed class RegisterResultDto
+public sealed record RegisterResult
 {
     public bool Succeeded { get; init; }
     public IEnumerable<string> Errors { get; init; } = Array.Empty<string>();
     public AuthUser? User { get; init; }
 
-    public static RegisterResultDto Success(AuthUser user) =>
+    public static RegisterResult Success(AuthUser user) =>
         new() { Succeeded = true, User = user };
 
-    public static RegisterResultDto Failure(IEnumerable<string> errors) =>
+    public static RegisterResult Failure(IEnumerable<string> errors) =>
         new() { Succeeded = false, Errors = errors };
 }

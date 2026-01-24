@@ -1,6 +1,8 @@
 ﻿using AuthLibrary.Data;
 using AuthLibrary.Data.Entities;
-using AuthLibrary.DTOs;
+using AuthLibrary.DTOs.Login;
+using AuthLibrary.DTOs.Provider;
+using AuthLibrary.DTOs.Register;
 using AuthLibrary.Services.Interfaces;
 using AuthLibrary.Settings.Constants;
 using Microsoft.AspNetCore.Authentication;
@@ -21,7 +23,7 @@ public class UserService : IUserService
         _schemeProvider = schemeProvider;
     }
 
-    public async Task<RegisterResultDto> RegisterUser(RegisterRequestDto request)
+    public async Task<RegisterResult> RegisterUser(RegisterRequest request)
     {
         using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -34,7 +36,7 @@ public class UserService : IUserService
 
         if (!request.IsUsingProvider() && string.IsNullOrWhiteSpace(request.Password))
         {
-            return RegisterResultDto.Failure(new[] { "Password is required." });
+            return RegisterResult.Failure(new[] { "Password is required." });
         }
 
         IdentityResult identityResult = request.IsUsingProvider() ? await _userManager.CreateAsync(user) : await _userManager.CreateAsync(user, request.Password!);
@@ -42,7 +44,7 @@ public class UserService : IUserService
         {
             var errors = string.Join(", ", identityResult.Errors.Select(e => e.Description));
             transaction.Rollback();
-            return RegisterResultDto.Failure(new[] { errors });
+            return RegisterResult.Failure(new[] { errors });
         }
 
         IdentityResult roleResult = await _userManager.AddToRoleAsync(user, AuthRoles.User);
@@ -50,12 +52,12 @@ public class UserService : IUserService
         {
             var errors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
             transaction.Rollback();
-            return RegisterResultDto.Failure(new[] { errors });
+            return RegisterResult.Failure(new[] { errors });
         }
 
         if (request.IsUsingProvider())
         {
-            var addProviderResult = await AddProvider(new AddProviderRequestDto
+            var addProviderResult = await AddProvider(new AddProviderRequest
             {
                 User = user,
                 Provider = request.Provider!,
@@ -65,32 +67,32 @@ public class UserService : IUserService
             if (!addProviderResult.Succeeded)
             {
                 transaction.Rollback();
-                return RegisterResultDto.Failure(addProviderResult.Errors);
+                return RegisterResult.Failure(addProviderResult.Errors);
             }
         }
 
         await transaction.CommitAsync();
 
-        return RegisterResultDto.Success(user);
+        return RegisterResult.Success(user);
     }
 
-    public async Task<LoginResultDto> LoginUser(LoginRequestDto request)
+    public async Task<LoginResult> LoginUser(LoginRequest request)
     {
         AuthUser? user = await _userManager.FindByEmailAsync(request.Email);
         if (user is null)
         {
-            return LoginResultDto.Failure(new[] { "Invalid email." });
+            return LoginResult.Failure(new[] { "Invalid email." });
         }
 
         if (!request.IsUsingProvider())
         {
             if (string.IsNullOrWhiteSpace(request.Password))
             {
-                return LoginResultDto.Failure(new[] { "Password is required." });
+                return LoginResult.Failure(new[] { "Password is required." });
             }
             if (!await _userManager.CheckPasswordAsync(user, request.Password))
             {
-                return LoginResultDto.Failure(new[] { "Invalid password." });
+                return LoginResult.Failure(new[] { "Invalid password." });
             }
         }
         else
@@ -99,16 +101,16 @@ public class UserService : IUserService
             bool providerExists = logins.Any(l => l.LoginProvider == request.Provider && l.ProviderKey == request.ProviderKey);
             if (!providerExists)
             {
-                return LoginResultDto.Failure(new[] { "Provider login not found for this user." });
+                return LoginResult.Failure(new[] { "Provider login not found for this user." });
             }
         }
 
         var roles = await _userManager.GetRolesAsync(user);
-        return LoginResultDto.Success(user, roles);
+        return LoginResult.Success(user, roles);
 
     }
 
-    public async Task<AddProviderResultDto> AddProvider(AddProviderRequestDto request)
+    public async Task<AddProviderResult> AddProvider(AddProviderRequest request)
     {
         var schemes = await _schemeProvider.GetAllSchemesAsync();
         if (!schemes.Any(s => s.Name == request.Provider && s.DisplayName == request.Name))
@@ -118,11 +120,11 @@ public class UserService : IUserService
             if (!loginResult.Succeeded)
             {
                 var errors = string.Join(", ", loginResult.Errors.Select(e => e.Description));
-                return AddProviderResultDto.Failure(new[] { errors });
+                return AddProviderResult.Failure(new[] { errors });
             }
         }
 
-        return AddProviderResultDto.Success();
+        return AddProviderResult.Success();
     }
 
     public async Task<AuthUser?> GetUserByEmailAsync(string email)

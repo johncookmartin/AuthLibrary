@@ -1,11 +1,11 @@
-namespace AuthLibrary.DTOs;
+namespace AuthLibrary.DTOs.Provider;
 
-public sealed class AddProviderResultDto
+public sealed record AddProviderResult
 {
     public bool Succeeded { get; init; }
     public IEnumerable<string> Errors { get; init; } = Array.Empty<string>();
-    public static AddProviderResultDto Success() =>
+    public static AddProviderResult Success() =>
         new() { Succeeded = true };
-    public static AddProviderResultDto Failure(IEnumerable<string> errors) =>
+    public static AddProviderResult Failure(IEnumerable<string> errors) =>
         new() { Succeeded = false, Errors = errors };
 }

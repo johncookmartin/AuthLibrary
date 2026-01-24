@@ -1,6 +1,6 @@
-﻿namespace AuthLibrary.DTOs;
+namespace AuthLibrary.DTOs.Login;
 
-public class LoginRequestDto
+public record LoginRequest
 {
     public string Email { get; init; } = string.Empty;
     public string? Password { get; init; }

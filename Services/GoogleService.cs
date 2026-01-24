@@ -1,4 +1,4 @@
-﻿using AuthLibrary.DTOs;
+﻿using AuthLibrary.DTOs.Google;
 using AuthLibrary.Services.Interfaces;
 using AuthLibrary.Settings;
 using Google.Apis.Auth;
@@ -19,7 +19,7 @@ public class GoogleService : IGoogleService
         _googleSettings = authSettings.Value.Google;
         _schemeProvider = schemeProvider;
     }
-    public async Task<GoogleLoginResultDto> LoginWithGoogleAsync(GoogleRequestDto request)
+    public async Task<GoogleLoginResult> LoginWithGoogleAsync(GoogleRequest request)
     {
         GoogleJsonWebSignature.Payload payload;
         try
@@ -33,15 +33,15 @@ public class GoogleService : IGoogleService
         }
         catch (Exception)
         {
-            return GoogleLoginResultDto.Failure("Invalid Google ID token.");
+            return GoogleLoginResult.Failure("Invalid Google ID token.");
         }
 
         if (string.IsNullOrWhiteSpace(payload.Email))
         {
-            return GoogleLoginResultDto.Failure("Google ID token does not contain an email.");
+            return GoogleLoginResult.Failure("Google ID token does not contain an email.");
         }
 
-        return GoogleLoginResultDto.Success(payload, GenerateDisplayName(payload));
+        return GoogleLoginResult.Success(payload, GenerateDisplayName(payload));
 
     }
 

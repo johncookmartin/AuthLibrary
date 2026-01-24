@@ -1,12 +1,14 @@
 ﻿using AuthLibrary.Data.Entities;
-using AuthLibrary.DTOs;
+using AuthLibrary.DTOs.Login;
+using AuthLibrary.DTOs.Provider;
+using AuthLibrary.DTOs.Register;
 
 namespace AuthLibrary.Services.Interfaces;
 
 public interface IUserService
 {
-    Task<LoginResultDto> LoginUser(LoginRequestDto request);
-    Task<RegisterResultDto> RegisterUser(RegisterRequestDto request);
+    Task<LoginResult> LoginUser(LoginRequest request);
+    Task<RegisterResult> RegisterUser(RegisterRequest request);
     Task<AuthUser?> GetUserByEmailAsync(string email);
-    Task<AddProviderResultDto> AddProvider(AddProviderRequestDto request);
+    Task<AddProviderResult> AddProvider(AddProviderRequest request);
 }
