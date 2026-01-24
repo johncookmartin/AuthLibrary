@@ -1,5 +1,6 @@
 ﻿using AuthLibrary.Data;
 using AuthLibrary.Data.Entities;
+using AuthLibrary.DTOs;
 using AuthLibrary.Services.Interfaces;
 using AuthLibrary.Settings;
 using AuthLibrary.Settings.Constants;
