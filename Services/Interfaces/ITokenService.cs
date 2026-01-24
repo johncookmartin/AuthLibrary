@@ -7,7 +7,7 @@ public interface ITokenService
 {
     Task<string> GenerateRefreshTokenAsync(AuthUser user);
     Task<string> GenerateTokenAsync(AuthUser user, IList<string> roles);
-    Task<RefreshTokenResult> RefreshTokenAsync(string refreshToken);
-    Task<RefreshTokenValidationResult> ValidateRefreshTokenAsync(string refreshToken);
+    Task<RefreshTokenResultDto> RefreshTokenAsync(string refreshToken);
+    Task<RefreshTokenValidationResultDto> ValidateRefreshTokenAsync(string refreshToken);
     Task<bool> RevokeRefreshTokensAsync(Guid userId);
 }

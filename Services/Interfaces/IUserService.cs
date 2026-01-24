@@ -5,8 +5,8 @@ namespace AuthLibrary.Services.Interfaces;
 
 public interface IUserService
 {
-    Task<LoginResult> LoginUser(LoginRequestDto request);
-    Task<RegisterResult> RegisterUser(RegisterRequestDto request);
+    Task<LoginResultDto> LoginUser(LoginRequestDto request);
+    Task<RegisterResultDto> RegisterUser(RegisterRequestDto request);
     Task<AuthUser?> GetUserByEmailAsync(string email);
-    Task<AddProviderResult> AddProvider(AddProviderRequestDto request);
+    Task<AddProviderResultDto> AddProvider(AddProviderRequestDto request);
 }

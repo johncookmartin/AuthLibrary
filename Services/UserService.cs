@@ -21,7 +21,7 @@ public class UserService : IUserService
         _schemeProvider = schemeProvider;
     }
 
-    public async Task<RegisterResult> RegisterUser(RegisterRequestDto request)
+    public async Task<RegisterResultDto> RegisterUser(RegisterRequestDto request)
     {
         using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -34,7 +34,7 @@ public class UserService : IUserService
 
         if (!request.IsUsingProvider() && string.IsNullOrWhiteSpace(request.Password))
         {
-            return RegisterResult.Failure(new[] { "Password is required." });
+            return RegisterResultDto.Failure(new[] { "Password is required." });
         }
 
         IdentityResult identityResult = request.IsUsingProvider() ? await _userManager.CreateAsync(user) : await _userManager.CreateAsync(user, request.Password!);
@@ -42,7 +42,7 @@ public class UserService : IUserService
         {
             var errors = string.Join(", ", identityResult.Errors.Select(e => e.Description));
             transaction.Rollback();
-            return RegisterResult.Failure(new[] { errors });
+            return RegisterResultDto.Failure(new[] { errors });
         }
 
         IdentityResult roleResult = await _userManager.AddToRoleAsync(user, AuthRoles.User);
@@ -50,7 +50,7 @@ public class UserService : IUserService
         {
             var errors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
             transaction.Rollback();
-            return RegisterResult.Failure(new[] { errors });
+            return RegisterResultDto.Failure(new[] { errors });
         }
 
         if (request.IsUsingProvider())
@@ -65,32 +65,32 @@ public class UserService : IUserService
             if (!addProviderResult.Succeeded)
             {
                 transaction.Rollback();
-                return RegisterResult.Failure(addProviderResult.Errors);
+                return RegisterResultDto.Failure(addProviderResult.Errors);
             }
         }
 
         await transaction.CommitAsync();
 
-        return RegisterResult.Success(user);
+        return RegisterResultDto.Success(user);
     }
 
-    public async Task<LoginResult> LoginUser(LoginRequestDto request)
+    public async Task<LoginResultDto> LoginUser(LoginRequestDto request)
     {
         AuthUser? user = await _userManager.FindByEmailAsync(request.Email);
         if (user is null)
         {
-            return LoginResult.Failure(new[] { "Invalid email." });
+            return LoginResultDto.Failure(new[] { "Invalid email." });
         }
 
         if (!request.IsUsingProvider())
         {
             if (string.IsNullOrWhiteSpace(request.Password))
             {
-                return LoginResult.Failure(new[] { "Password is required." });
+                return LoginResultDto.Failure(new[] { "Password is required." });
             }
             if (!await _userManager.CheckPasswordAsync(user, request.Password))
             {
-                return LoginResult.Failure(new[] { "Invalid password." });
+                return LoginResultDto.Failure(new[] { "Invalid password." });
             }
         }
         else
@@ -99,16 +99,16 @@ public class UserService : IUserService
             bool providerExists = logins.Any(l => l.LoginProvider == request.Provider && l.ProviderKey == request.ProviderKey);
             if (!providerExists)
             {
-                return LoginResult.Failure(new[] { "Provider login not found for this user." });
+                return LoginResultDto.Failure(new[] { "Provider login not found for this user." });
             }
         }
 
         var roles = await _userManager.GetRolesAsync(user);
-        return LoginResult.Success(user, roles);
+        return LoginResultDto.Success(user, roles);
 
     }
 
-    public async Task<AddProviderResult> AddProvider(AddProviderRequestDto request)
+    public async Task<AddProviderResultDto> AddProvider(AddProviderRequestDto request)
     {
         var schemes = await _schemeProvider.GetAllSchemesAsync();
         if (!schemes.Any(s => s.Name == request.Provider && s.DisplayName == request.Name))
@@ -118,11 +118,11 @@ public class UserService : IUserService
             if (!loginResult.Succeeded)
             {
                 var errors = string.Join(", ", loginResult.Errors.Select(e => e.Description));
-                return AddProviderResult.Failure(new[] { errors });
+                return AddProviderResultDto.Failure(new[] { errors });
             }
         }
 
-        return AddProviderResult.Success();
+        return AddProviderResultDto.Success();
     }
 
     public async Task<AuthUser?> GetUserByEmailAsync(string email)

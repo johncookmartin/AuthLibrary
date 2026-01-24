@@ -88,26 +88,26 @@ public class TokenService : ITokenService
         return refreshToken.Token;
     }
 
-    public async Task<RefreshTokenValidationResult> ValidateRefreshTokenAsync(string refreshToken)
+    public async Task<RefreshTokenValidationResultDto> ValidateRefreshTokenAsync(string refreshToken)
     {
         RefreshToken? existingToken = await _context.RefreshTokens
                         .Include(r => r.User)
                         .FirstOrDefaultAsync(r => r.Token == refreshToken && r.DeletedAtUtc == null);
         if (existingToken == null || existingToken.ExpiresOnUtc < DateTime.UtcNow || existingToken.User == null)
         {
-            return RefreshTokenValidationResult.Failure("Invalid or expired refresh token.");
+            return RefreshTokenValidationResultDto.Failure("Invalid or expired refresh token.");
         }
         var roles = await _userManager.GetRolesAsync(existingToken.User);
 
-        return RefreshTokenValidationResult.Success(existingToken, existingToken.User, roles);
+        return RefreshTokenValidationResultDto.Success(existingToken, existingToken.User, roles);
     }
 
-    public async Task<RefreshTokenResult> RefreshTokenAsync(string refreshToken)
+    public async Task<RefreshTokenResultDto> RefreshTokenAsync(string refreshToken)
     {
-        RefreshTokenValidationResult validationResult = await ValidateRefreshTokenAsync(refreshToken);
+        RefreshTokenValidationResultDto validationResult = await ValidateRefreshTokenAsync(refreshToken);
         if (!validationResult.Succeeded)
         {
-            return RefreshTokenResult.Failure(validationResult.ErrorMessage!);
+            return RefreshTokenResultDto.Failure(validationResult.ErrorMessage!);
         }
 
         string accessToken = await GenerateTokenAsync(validationResult.User, validationResult.Roles);
@@ -115,7 +115,7 @@ public class TokenService : ITokenService
 
         await _context.SaveChangesAsync();
 
-        return RefreshTokenResult.Success(accessToken, newRefreshToken);
+        return RefreshTokenResultDto.Success(accessToken, newRefreshToken);
     }
 
     public async Task<bool> RevokeRefreshTokensAsync(Guid userId)
